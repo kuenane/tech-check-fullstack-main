@@ -1,4 +1,4 @@
-package com.ikhokha.techcheck;
+
 
 import java.io.File;
 import java.util.ArrayList;
@@ -14,9 +14,8 @@ public class Main {
 	
 	public static void main(String[] args) {
 		Map<String, Integer> results = new HashMap<String, Integer>();
-		int maxThreads = 10; // default unless provided as a --thread x cli arg
-		String keywordsToFind = "mover,shaker"; // default unless provided as a --keywords x cli arg
-
+		int maxThreads = 10; // default unless 
+		String keywordsToFind = "mover,shaker"; // default 
 
 		ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
 		List<Future<Map<String, Integer>>> futures = new ArrayList<>();

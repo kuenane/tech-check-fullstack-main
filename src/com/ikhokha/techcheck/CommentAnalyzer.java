@@ -98,4 +98,8 @@ public class CommentAnalyzer implements Callable<Map<String, Integer>>{
 		return this.terms;
 	}
 
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3d2c499b2230141540b0c76c46d731d08b9c19a6
