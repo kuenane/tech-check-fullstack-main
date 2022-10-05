@@ -1,65 +1,70 @@
 package com.ikhokha.techcheck;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;  
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;  
 
 public class Main {
+	
+	public static void main(String[] args) {
+		Map<String, Integer> results = new HashMap<String, Integer>();
+		int maxThreads = 10; // default unless provided as a --thread x cli arg
+		String keywordsToFind = "mover,shaker"; // default unless provided as a --keywords x cli arg
 
-  public static void main(String[] args) { 
 
-    ConcurrentMap<String, Integer> totalResults = new ConcurrentHashMap<>();;
+		ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
+		List<Future<Map<String, Integer>>> futures = new ArrayList<>();
 
-    File docPath = new File("docs");
-    File[] commentFiles = docPath.listFiles((d, n) -> n.endsWith(".txt"));
+		System.out.println(String.format("RUNNING REPORTS ON %s THREAD(S)", maxThreads));
+				
+		File docPath = new File("docs");
+		File[] commentFiles = docPath.listFiles((d, n) -> n.endsWith(".txt"));
 
-    ExecutorService executor = Executors.newFixedThreadPool(10);
+		System.out.println(String.format("%s DOCS FOUND", commentFiles.length));
 
-    for (File commentFile : commentFiles) {
+		final long startTime = System.currentTimeMillis();
+		
+		for (File commentFile: commentFiles){
+			Callable<Map<String, Integer>> commentAnalyzerWorker =  new CommentAnalyzer(commentFile, keywordsToFind);
+			futures.add(executor.submit(commentAnalyzerWorker));
+		}
 
-      executor.submit(new CommentAnalyzer(commentFile, totalResults));
-       CommentAnalyzer commentAnalyzer = new CommentAnalyzer(commentFile, totalResults);
-       Map<String, Integer> fileResults = commentAnalyzer.analyze();
-       addReportResults(fileResults, totalResults);
+		executor.shutdown();
 
-    }
+		while (!executor.isTerminated()) { }
 
-    try {
-      executor.shutdown();
-      executor.awaitTermination(2, TimeUnit.MINUTES);
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new RuntimeException(e.getCause());
-    }
+		for (Future<Map<String, Integer>> future : futures) {
+			try {
+				Map<String, Integer> commentFileResults = future.get();
+				addReportResults(commentFileResults, results);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		 }
+		
+		System.out.println("RESULTS\n=======");
+		results.forEach((k,v) -> System.out.println(k + " : " + v));
+		System.out.println(String.format("Completed in %s ms", (System.currentTimeMillis() - startTime)));
+	}
 
-    System.out.println("RESULTS\n=======");
-    totalResults.forEach((k, v) -> System.out.println(k + " : " + v));
-  }
+	/**
+	 * This method adds the result counts from a source map to the target map 
+	 * @param source the source map
+	 * @param target the target map
+	 */
+	private static void addReportResults(Map<String, Integer> source, Map<String, Integer> target) {
 
-  /**
-   * This method adds the result counts from a source map to the target map
-   * 
-   * @param source the source map
-   * @param target the target map
-   */
-  private static void addReportResults(Map<String, Integer> source, Map<String, Integer> target) {
-
-    for (Map.Entry<String, Integer> entry : source.entrySet()) {
-
-      Integer i = 0;
-      if (target.containsKey(entry.getKey())) {
-        i = target.get(entry.getKey()) + entry.getValue();
-      } else {
-        i = entry.getValue();
-      }
-
-      target.put(entry.getKey(), i);
-    }
-
-  }
+		for (Map.Entry<String, Integer> entry : source.entrySet()) {
+			target.putIfAbsent(entry.getKey(), 0);
+			target.put(entry.getKey(), target.get(entry.getKey()) + entry.getValue());
+		}
+		
+	}
 
 }
