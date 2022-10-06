@@ -10,8 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;  
 
 public class Main {
-	
-	public static void main(String[] args) {
+	static void myThreads() {
 		Map<String, Integer> results = new HashMap<String, Integer>();
 		int maxThreads = 10; // default unless 
 		String keywordsToFind = "mover,shaker"; // default 
@@ -49,6 +48,11 @@ public class Main {
 		System.out.println("RESULTS\n=======");
 		results.forEach((k,v) -> System.out.println(k + " : " + v));
 		System.out.println(String.format("Completed in %s ms", (System.currentTimeMillis() - startTime)));
+
+	}
+	
+	public static void main(String[] args) {
+		myThreads();
 	}
 
 	/**
