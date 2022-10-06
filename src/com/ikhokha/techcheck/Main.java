@@ -12,8 +12,8 @@ import java.util.concurrent.Future;
 public class Main {
 	static void myThreads() {
 		Map<String, Integer> results = new HashMap<String, Integer>();
-		int maxThreads = 10; // default unless 
-		String keywordsToFind = "mover,shaker"; // default 
+		int maxThreads = 10; 
+		String keywordsToFind = "mover,shaker"; 
 
 		ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
 		List<Future<Map<String, Integer>>> futures = new ArrayList<>();
